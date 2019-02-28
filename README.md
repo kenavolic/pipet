@@ -1,6 +1,6 @@
 # Pipet
 
-[![Build Status](https://travis-ci.org/kenavolic/pipet?branch=master)](https://travis-ci.org/kenavolic/pipet)
+[![Build Status](https://travis-ci.org/kenavolic/pipet.svg?branch=master)](https://travis-ci.org/kenavolic/pipet)
 
 Pipet is a lightweight c++17 headers-only library than can be used to build
 simple processing pipelines at compile time.
