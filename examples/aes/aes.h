@@ -1,11 +1,11 @@
 // Copyright 2018 Ken Avolic <kenavolic@none.com>
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -186,38 +186,41 @@ constexpr bool equals(std::array<T, N> const &rhs,
 // expanded key
 template <std::size_t N> struct exp_key : exp_key<N - 1> {
   constexpr exp_key(serial_key key)
-      : exp_key<N - 1>(key), k{{exp_key<N - 1>::k.c0 ^
-                                detail::g(exp_key<N - 1>::k.c3, N)},
-                               {k.c0 ^ exp_key<N - 1>::k.c1},
-                               {k.c1 ^ exp_key<N - 1>::k.c2},
-                               {k.c2 ^ exp_key<N - 1>::k.c3}} {}
+      : exp_key<N - 1>(key), c0{exp_key<N - 1>::c0 ^
+                                detail::g(exp_key<N - 1>::c3, N)},
+        c1{c0 ^ exp_key<N - 1>::c1}, c2{c1 ^ exp_key<N - 1>::c2},
+        c3{c2 ^ exp_key<N - 1>::c3} {}
 
   constexpr auto serial_at(std::size_t i) const {
-    return ((i == N) ? detail::serialize_key(k.c0, k.c1, k.c2, k.c3)
+    return ((i == N) ? detail::serialize_key(c0, c1, c2, c3)
                      : exp_key<N - 1>::serial_at(i));
   }
 
   constexpr auto get_at(std::size_t i) const {
-    return ((i == N) ? k : exp_key<N - 1>::get_at(i));
+    return ((i == N) ? key{c0, c1, c2, c3} : exp_key<N - 1>::get_at(i));
   }
 
-  key const k;
+  word const c0;
+  word const c1;
+  word const c2;
+  word const c3;
 };
 
 template <> struct exp_key<0> {
   constexpr exp_key(serial_key const &k)
-      : k{{k[0], k[1], k[2], k[3]},
-          {k[4], k[5], k[6], k[7]},
-          {k[8], k[9], k[10], k[11]},
-          {k[12], k[13], k[14], k[15]}} {}
+      : c0{k[0], k[1], k[2], k[3]}, c1{k[4], k[5], k[6], k[7]},
+        c2{k[8], k[9], k[10], k[11]}, c3{k[12], k[13], k[14], k[15]} {}
 
   constexpr auto serial_at(std::size_t i) const {
-    return detail::serialize_key(k.c0, k.c1, k.c2, k.c3);
+    return detail::serialize_key(c0, c1, c2, c3);
   }
 
-  constexpr auto get_at(std::size_t i) const { return k; }
+  constexpr auto get_at(std::size_t i) const { return key{c0, c1, c2, c3}; }
 
-  key const k;
+  word const c0;
+  word const c1;
+  word const c2;
+  word const c3;
 };
 
 // Base state passed from filter to filter

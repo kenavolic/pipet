@@ -1,11 +1,11 @@
 // Copyright 2018 Ken Avolic <kenavolic@none.com>
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,8 +33,8 @@ using namespace pipet::helpers;
 namespace {
 template <std::size_t N> struct fixed_xor_filter {
   // internal fixed key
-  static constexpr uint8_t key[] = {0xef, 0x1a, 0xb3, 0x4f, 0xda,
-                                    0x32, 0x16, 0x75, 0x14, 0x56};
+  static constexpr uint8_t key[10] = {0xef, 0x1a, 0xb3, 0x4f, 0xda,
+                                      0x32, 0x16, 0x75, 0x14, 0x56};
 
   // internal data type
   using data_type = cxstring<N>;
@@ -126,9 +126,21 @@ int main() {
   constexpr volatile auto cipher3 = obfuscate(make_cxstring("bad password"));
 
   std::cout << "[--- plain strings ---]" << std::endl;
-  std::cout << "plain1 = " << deobfuscate(*(const_cast<std::remove_volatile_t<decltype(cipher1)>*>(&cipher1))) << std::endl;
-  std::cout << "plain2 = " << deobfuscate(*(const_cast<std::remove_volatile_t<decltype(cipher2)>*>(&cipher2))) << std::endl;
-  std::cout << "plain3 = " << deobfuscate(*(const_cast<std::remove_volatile_t<decltype(cipher3)>*>(&cipher3))) << std::endl;
+  std::cout << "plain1 = "
+            << deobfuscate(
+                   *(const_cast<std::remove_volatile_t<decltype(cipher1)> *>(
+                       &cipher1)))
+            << std::endl;
+  std::cout << "plain2 = "
+            << deobfuscate(
+                   *(const_cast<std::remove_volatile_t<decltype(cipher2)> *>(
+                       &cipher2)))
+            << std::endl;
+  std::cout << "plain3 = "
+            << deobfuscate(
+                   *(const_cast<std::remove_volatile_t<decltype(cipher3)> *>(
+                       &cipher3)))
+            << std::endl;
 
   return 0;
 }

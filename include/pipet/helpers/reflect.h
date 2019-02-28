@@ -1,13 +1,13 @@
 #pragma once
 
 // Copyright 2018 Ken Avolic <kenavolic@none.com>
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,7 +51,8 @@ using is_detected_t = typename is_detected<Op, Args...>::type;
 template <template <typename...> typename Op, typename... Args>
 constexpr bool is_detected_v = is_detected_t<Op, Args...>::value;
 
-// general compile-time validator (ref: C++ template The complete guide, Louis Dionne contrib)
+// general compile-time validator (ref: C++ template The complete guide, Louis
+// Dionne contrib)
 
 inline constexpr auto is_valid = [](auto f) {
   using input_type = decltype(f);
