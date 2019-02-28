@@ -1,5 +1,7 @@
 # Pipet
 
+[![Build Status](https://travis-ci.org/kenavolic/pipet?branch=master)](https://travis-ci.org/kenavolic/pipet)
+
 Pipet is a lightweight c++17 headers-only library than can be used to build
 simple processing pipelines at compile time.
 
@@ -13,8 +15,8 @@ simple processing pipelines at compile time.
 
 Tests have been performed on the following platforms:
 
-  * Visual studio 2017 
-  * gcc 7.3.0
+  * g++-7 on linux (ci)
+  * clang++-7 (ci)
 
 # Install
 
