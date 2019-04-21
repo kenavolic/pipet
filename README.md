@@ -42,7 +42,7 @@ Tests have been performed on the following platforms:
 
 # Usage
 
-# Examples
+## Examples
 
 The projet include the following examples:
 
