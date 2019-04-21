@@ -42,6 +42,14 @@ Tests have been performed on the following platforms:
 
 # Usage
 
+# Examples
+
+The projet include the following examples:
+
+* AES ciphering at compile time
+* String obfuscation at compile time
+* Mask generation at compile time
+
 ## Import pipet to your project
 
   * In your CMakeLists.txt, import pipet
