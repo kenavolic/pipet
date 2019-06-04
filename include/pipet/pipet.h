@@ -14,12 +14,14 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "filter.h"
+#include "helpers/typelist.h"
 #include "helpers/utils.h"
 
+#include <type_traits>
+
 namespace pipet {
+
 namespace detail {
 template <typename F, typename R, typename T> struct regular_element_impl;
 
@@ -28,14 +30,32 @@ struct regular_element_impl<F, R, filter_gen> {
   static constexpr auto process() { return R::process(F::process()); }
 };
 
-template <typename F, typename R>
-struct regular_element_impl<F, R, filter_proc> {
-  static_assert(concept ::io_compatible<F, R>(), "[-][pipet] invalid io");
+template <typename F, typename R, typename Args>
+struct regular_element_impl_varargs;
 
-  using f_arg_type = typename traits::filter_traits<F>::arg_type;
+template <typename F, typename R, template <typename...> typename List,
+          typename... Args>
+struct regular_element_impl_varargs<F, R, List<Args...>>
+    : helpers::requires_v<concept ::io_compatible<F, R>()> {
+  static constexpr auto process(Args... args) {
+    return R::process(F::process(std::move(args)...));
+  }
+};
+
+template <typename F, typename R>
+struct regular_element_impl<F, R, filter_proc>
+    : regular_element_impl_varargs<
+          F, R, typename traits::filter_traits<F>::args_type> {};
+
+template <typename R, typename... Ps>
+struct regular_element_impl<branches<Ps...>, R, filter_proc>
+    : helpers::requires_v<concept ::io_compatible_x<R, Ps...>()> {
+
+  using f_arg_type = helpers::front_t<
+      helpers::merge_all_t<typename traits::filter_traits<Ps>::args_type...>>;
 
   static constexpr auto process(f_arg_type arg) {
-    return R::process(F::process(std::move(arg)));
+    return R::process(Ps::process(arg)...);
   }
 };
 
@@ -55,13 +75,20 @@ template <typename F> struct end_element_impl<F, filter_gen> {
   static constexpr auto process() { return F::process(); }
 };
 
-template <typename F> struct end_element_impl<F, filter_proc> {
-  using f_arg_type = typename traits::filter_traits<F>::arg_type;
+template <typename F, typename Args> struct end_element_impl_varargs;
 
-  static constexpr auto process(f_arg_type arg) {
-    return F::process(std::move(arg));
+template <typename F, template <typename...> typename List, typename... Args>
+struct end_element_impl_varargs<F, List<Args...>>
+    : helpers::requires_v<concept ::check_args<F, Args...>()> {
+  static constexpr auto process(Args... args) {
+    return F::process(std::move(args)...);
   }
 };
+
+template <typename F>
+struct end_element_impl<F, filter_proc>
+    : end_element_impl_varargs<F,
+                               typename traits::filter_traits<F>::args_type> {};
 
 template <typename F>
 struct end_element_impl<F, filter_rev_proc> : end_element_impl<F, filter_proc> {
@@ -73,9 +100,6 @@ struct end_element_impl<F, filter_rev_proc> : end_element_impl<F, filter_proc> {
 };
 } // namespace detail
 
-///
-/// @brief Pipe basic block
-///
 template <typename F, typename R>
 struct regular_element
     : detail::regular_element_impl<
@@ -96,9 +120,6 @@ struct pipe_element_selector<F, helpers::nonsuch> : end_element<F> {};
 template <typename F, typename R = helpers::nonsuch>
 struct pipe_element : pipe_element_selector<F, R> {};
 
-///
-/// @brief Compile-time constructible pipe
-///
 template <typename... Args> struct pipe;
 
 template <typename F, typename... R>

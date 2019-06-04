@@ -16,12 +16,24 @@
 
 #include "helpers/reflect.h"
 #include "helpers/typelist.h"
+#include "helpers/utils.h"
 
 namespace pipet {
+
+// Branch
+template <typename... Ts> struct branches {};
+
 // Filter types
 struct filter_gen;      // data generator
 struct filter_proc;     // data processor
 struct filter_rev_proc; // reversible data processor
+
+// placeholders
+namespace placeholders {
+struct self {
+  template <typename T> constexpr static T process(T arg) { return arg; }
+};
+} // namespace placeholders
 
 namespace detail {
 static constexpr auto has_reverse = helpers::is_valid(
@@ -32,14 +44,8 @@ template <typename F> struct filter_traits_impl {
   // return type
   using ret_type = decltype(helpers::function_ret(&F::process));
 
-  // args type intro
-  using args_types = decltype(helpers::function_args(&F::process));
-  static constexpr auto args_size =
-      helpers::size_v<args_types>; // intermediate step due to visual compiler
-                                   // failure
-  static_assert(args_size <= 1, "[-][pipet] only one-to-one filter handled");
-
-  using arg_type = typename helpers::robust_front<args_types>::type;
+  // args type
+  using args_type = decltype(helpers::function_args(&F::process));
 
   // filter type
   static constexpr auto is_reversible =
@@ -47,8 +53,8 @@ template <typename F> struct filter_traits_impl {
 };
 
 template <typename F,
-          bool G = std::is_same_v<helpers::nonsuch,
-                                  typename filter_traits_impl<F>::arg_type>>
+          bool G = std::is_same_v<helpers::typelist<>,
+                                  typename filter_traits_impl<F>::args_type>>
 struct filter_type_selector;
 
 template <typename F> struct filter_type_selector<F, true> {
@@ -68,10 +74,18 @@ namespace traits {
 template <typename F> struct filter_traits {
   using ret_type =
       std::decay_t<typename detail::filter_traits_impl<F>::ret_type>;
-  using arg_type =
-      std::decay_t<typename detail::filter_traits_impl<F>::arg_type>;
+  using args_type = typename detail::filter_traits_impl<F>::args_type;
   using filter_type = detail::filter_type_selector_t<F>;
 };
+
+template <> struct filter_traits<placeholders::self> {
+  using ret_type = helpers::nonsuch;
+  using args_type = helpers::typelist<>;
+  using filter_type = filter_proc;
+};
+
+template <typename P, typename... Ps>
+struct filter_traits<branches<P, Ps...>> : filter_traits<P> {};
 } // namespace traits
 
 namespace concept {
@@ -80,24 +94,38 @@ namespace concept {
   struct io_checker;
 
   template <typename F, typename R> struct io_checker<F, R, filter_proc> {
-    using r_arg_type = typename traits::filter_traits<R>::arg_type;
+    using r_args_type = typename traits::filter_traits<R>::args_type;
+    using r_arg_type = helpers::front_t<r_args_type>;
     using f_ret_type = typename traits::filter_traits<F>::ret_type;
 
-    static constexpr bool value = std::is_convertible_v<f_ret_type, r_arg_type>;
+    static constexpr bool value = helpers::size_v<r_args_type> == 1 &&
+                                  std::is_convertible_v<f_ret_type, r_arg_type>;
   };
 
   template <typename F, typename R>
   struct io_checker<F, R, filter_rev_proc> : io_checker<F, R, filter_proc> {
-    using r_arg_type = typename traits::filter_traits<R>::arg_type;
+    using r_args_type = typename traits::filter_traits<R>::args_type;
+    using r_arg_type = helpers::front_t<r_args_type>;
     using f_ret_type = typename traits::filter_traits<F>::ret_type;
 
     static constexpr bool value =
+        helpers::size_v<r_args_type> == 1 &&
         std::is_convertible_v<r_arg_type, f_ret_type> &&
         io_checker<F, R, filter_proc>::value;
   };
 
   template <typename F, typename R> constexpr bool io_compatible() {
     return io_checker<F, R>::value;
+  }
+
+  template <typename F, typename... Ps> constexpr bool io_compatible_x() {
+    return helpers::size_v<helpers::merge_all_t<
+               typename traits::filter_traits<Ps>::args_type...>> == 1;
+  }
+
+  template <typename F, typename... Args> constexpr bool check_args() {
+    return std::is_same_v<typename traits::filter_traits<F>::args_type,
+                          helpers::typelist<Args...>>;
   }
 } // namespace concept
 

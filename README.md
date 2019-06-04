@@ -10,6 +10,7 @@ simple processing pipelines at compile time.
   * Compile-time pipeline building from a set of user-defined filters
   * Compile-time or runtime pipeline execution
   * Creation of reversible pipelines (if all filters in the pipeline are reversible)
+  * Creation of branches (handling of multiple input filters)
 
 # Supported Platforms
 
@@ -95,6 +96,53 @@ The example directory provide two examples of pipet usage. Basically, all you ne
 ~~~
     constexpr auto res = my_processing_pipe::process(); // if filter 1 is a data generator (no input type)
     constexpr auto res = my_processing_pipe::process(var); // if filter 1 is processing filter
+~~~
+
+  * Create branches
+~~~
+  struct f1_proc_ct {
+    static constexpr auto process(int a) { return a; }
+  };
+
+  // compute a*a
+  struct f_square_ct {
+    static constexpr auto process(int a) { return a * a; }
+  };
+
+  // compute a*a*a
+  struct f_cube_ct {
+    static constexpr auto process(int a) { return a * a * a; }
+  };
+
+  // add 3 different inputs
+  struct f_add3_ct {
+    static constexpr auto process(int a, int b, int c) { return a + b + c; }
+  };
+
+  using branch1_t = pipet::pipe<f1_proc_ct, f_square_ct>;
+  using branch2_t = pipet::pipe<f_cube_ct, f1_proc_ct>;
+
+  // y = x*x + x*x + x*x*x
+  using pipe_with_branches_t =
+      pipet::pipe<f1_proc_ct, pipet::branches<branch1_t, branch1_t, branch2_t>,
+                  f_add3_ct>;
+  
+  static_assert(pipe_with_branches_t::process(2) == 16,
+                "[-][pipet_test] pipe processing failed");
+~~~
+
+  * Create branches with a direct connection
+~~~
+  ... (see previous sample)
+
+  // y = x + x*x + x*x*x
+  using pipe_with_direct_branches_t = pipet::pipe<
+      f1_proc_ct,
+      pipet::branches<pipet::placeholders::self, branch1_t, branch2_t>,
+      f_add3_ct>;
+  static_assert(pipe_with_direct_branches_t::process(2) == 14,
+                "[-][pipet_test] pipe processing failed");
+
 ~~~
  
 

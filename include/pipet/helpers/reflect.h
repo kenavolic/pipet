@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "typelist.h"
+
 #include <type_traits>
 #include <utility>
-
-#include "typelist.h"
 
 namespace pipet::helpers {
 namespace detail {
@@ -73,5 +73,5 @@ template <typename Ret, typename... Args> Ret function_ret(Ret(Args...));
 
 // function args type
 template <typename Ret, typename... Args>
-typelist<Args...> function_args(Ret(Args...));
+typelist<std::decay_t<Args>...> function_args(Ret(Args...));
 } // namespace pipet::helpers

@@ -57,4 +57,19 @@ struct f3_rev_proc_ct {
     return std::make_tuple(std::get<0>(t) - 1, std::get<1>(t) - 1);
   }
 };
+
+// compute a*a
+struct f_square_ct {
+  static constexpr auto process(int a) { return a * a; }
+};
+
+// compute a*a*a
+struct f_cube_ct {
+  static constexpr auto process(int a) { return a * a * a; }
+};
+
+// add 3 different inputs
+struct f_add3_ct {
+  static constexpr auto process(int a, int b, int c) { return a + b + c; }
+};
 } // namespace pipet::test

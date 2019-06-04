@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "utils.h"
+
+#include <type_traits>
 
 namespace pipet::helpers {
 // generic typelist features
@@ -149,6 +149,39 @@ struct remove_dup<List<Head>> {
 };
 
 template <typename List> using remove_dup_t = typename remove_dup<List>::type;
+
+template <typename List1, typename List2, bool = is_empty_v<List2>>
+struct concat;
+
+template <typename List1, typename List2> struct concat<List1, List2, false> {
+  using type = push_front_t<front_t<List2>,
+                            typename concat<List1, pop_front_t<List2>>::type>;
+};
+
+template <typename List1, typename List2> struct concat<List1, List2, true> {
+  using type = List1;
+};
+
+template <typename List1, typename List2>
+using concat_t = typename concat<List1, List2>::type;
+
+template <typename List1, typename List2>
+using merge_t = remove_dup_t<concat_t<List1, List2>>;
+
+template <typename... Lists> struct concat_all;
+
+template <typename L1, typename L2, typename... Ls>
+struct concat_all<L1, L2, Ls...> {
+  using type = concat_t<L1, typename concat_all<L2, Ls...>::type>;
+};
+
+template <typename L> struct concat_all<L> { using type = L; };
+
+template <typename... Lists>
+using concat_all_t = typename concat_all<Lists...>::type;
+
+template <typename... Lists>
+using merge_all_t = remove_dup_t<concat_all_t<Lists...>>;
 
 // rebind
 template <template <typename...> typename TList, typename SList> struct rebind;

@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.9)
 
 # Project
-project(pipet LANGUAGES CXX VERSION 0.1.0)
+project(pipet LANGUAGES CXX VERSION 0.2.0)
 
 # Options
 option(PIPET_BUILD_TESTS "Build tests" ON)

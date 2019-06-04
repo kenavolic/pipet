@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "pipet/helpers/typelist.h"
+
 #include "gtest/gtest.h"
 
 #include <tuple>
 #include <type_traits>
-
-#include "pipet/helpers/typelist.h"
 
 using namespace pipet::helpers;
 
@@ -85,6 +85,30 @@ TEST(typelist_test, main) {
   static_assert(std::is_same_v<remove_dup_t<typelist<int, double>>,
                                typelist<int, double>>,
                 "[-][typelist_test] remove_dup failed");
+
+  // concat
+  static_assert(std::is_same_v<typelist<int, double, int>,
+                               concat_t<typelist<int>, typelist<int, double>>>,
+                "[-][typelist_test] concat failed");
+
+  // concate all
+  static_assert(
+      std::is_same_v<typelist<float, int, double, int>,
+                     concat_all_t<typelist<int>, typelist<int, double>,
+                                  typelist<>, typelist<float>>>,
+      "[-][typelist_test] concat_all_t failed");
+
+  // merge
+  static_assert(std::is_same_v<typelist<double, int>,
+                               merge_t<typelist<int>, typelist<int, double>>>,
+                "[-][typelist] merge failed");
+
+  // merge all
+  static_assert(
+      std::is_same_v<
+          typelist<double, int>,
+          merge_all_t<typelist<int>, typelist<int, double>, typelist<double>>>,
+      "[-][typelist] merge_all failed");
 
   // rebind
   static_assert(std::is_same_v<rebind_t<std::tuple, typelist<int, int>>,

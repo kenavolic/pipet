@@ -15,6 +15,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 namespace pipet::helpers {
@@ -23,6 +24,10 @@ struct nonsuch {
   ~nonsuch() = delete;
   nonsuch(const nonsuch &) = delete;
   void operator=(const nonsuch &) = delete;
+};
+
+template <bool B> struct requires_v {
+  static_assert(B, "[-][pipet] requirement not met");
 };
 
 template <typename T, T val, typename = std::integral_constant<T, val>>
@@ -34,6 +39,6 @@ struct is_non_zero<T, val, std::integral_constant<T, 0>> : std::false_type {};
 template <typename S, S val, typename T> struct is_unsigned_compatible {
   static_assert(std::is_unsigned_v<S> && std::is_integral_v<T>,
                 "[-][pipet] bad usage");
-  static constexpr bool value = (val <= std::numeric_limits<T>::max());
+  static constexpr bool value = (val <= (std::numeric_limits<T>::max)());
 };
 } // namespace pipet::helpers
