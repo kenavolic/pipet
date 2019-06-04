@@ -14,10 +14,10 @@
 
 #pragma once
 
+#include "pipet/helpers/utils.h"
+
 #include <limits>
 #include <type_traits>
-
-#include "pipet/helpers/utils.h"
 
 namespace pipet::extra {
 namespace concept {
